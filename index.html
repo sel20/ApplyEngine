@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApplyEngine — Land the Job</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ─── TOKENS ─── */
+    :root {
+      --bg:        #f5f4f0;
+      --surface:   #ffffff;
+      --border:    #e2e0d8;
+      --ink:       #1a1916;
+      --ink-soft:  #6b6860;
+      --accent:    #2d5a27;
+      --accent-lt: #e8f0e7;
+      --danger:    #c0392b;
+      --radius:    16px;
+      --shadow:    0 4px 32px rgba(0,0,0,0.07);
+      --transition:0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    [data-theme="dark"] {
+      --bg:        #111210;
+      --surface:   #1c1e1b;
+      --border:    #2e3029;
+      --ink:       #f0ede6;
+      --ink-soft:  #8a8880;
+      --accent:    #6ab05e;
+      --accent-lt: #1e2e1c;
+      --shadow:    0 4px 32px rgba(0,0,0,0.35);
+    }
+
+    /* ─── RESET ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+      overflow-x: hidden;
+    }
+
+    /* ─── BACKGROUND GRAIN ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      pointer-events: none; z-index: 0; opacity: 0.6;
+    }
+
+    /* ─── LAYOUT ─── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 100;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem;
+      color: var(--ink);
+      display: flex; align-items: center; gap: 0.5rem;
+      text-decoration: none;
+    }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .theme-toggle {
+      background: var(--accent-lt);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 0.35rem 0.9rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink-soft);
+      font-weight: 500;
+      transition: all var(--transition);
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .theme-toggle:hover { color: var(--ink); border-color: var(--accent); }
+
+    /* ─── HERO ─── */
+    .hero {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 5rem 1.5rem 3rem;
+      gap: 1rem;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: var(--accent-lt);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      color: var(--accent);
+      border-radius: 99px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      line-height: 1.1;
+      color: var(--ink);
+      max-width: 720px;
+    }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero p {
+      color: var(--ink-soft);
+      font-size: 1.05rem;
+      max-width: 480px;
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* ─── CARD ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 2.5rem;
+      width: 100%; max-width: 580px;
+      margin: 0 auto 5rem;
+      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ─── FORM ─── */
+    .form-grid { display: grid; gap: 1.1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+    @media(max-width:520px) { .form-row { grid-template-columns: 1fr; } .card { padding: 1.5rem; } }
+
+    .field { display: flex; flex-direction: column; gap: 0.4rem; }
+    label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      letter-spacing: 0.02em;
+    }
+    input, textarea, select {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+      width: 100%;
+      resize: none;
+    }
+    input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: 0.5; }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+    textarea { min-height: 110px; }
+    select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8880' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+
+    /* ─── SUBMIT BUTTON ─── */
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.95rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      position: relative; overflow: hidden;
+      margin-top: 0.4rem;
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ripple */
+    .btn-submit::after {
+      content: ''; position: absolute;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+      transform: scale(0); opacity: 0;
+      transition: transform 0.5s, opacity 0.5s;
+      border-radius: 50%;
+      top: -50%; left: -50%;
+    }
+    .btn-submit:active::after { transform: scale(1); opacity: 1; transition: 0s; }
+
+    /* spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: block; }
+    .loading .btn-text { display: none; }
+
+    /* ─── SUCCESS SCREEN ─── */
+    .success-screen {
+      display: none;
+      flex-direction: column; align-items: center;
+      text-align: center; gap: 1rem;
+      padding: 1rem 0;
+    }
+    .success-icon {
+      width: 64px; height: 64px;
+      background: var(--accent-lt);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-screen h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+    }
+    .success-screen p { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.6; }
+    .btn-reset {
+      background: none; border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 0.65rem 1.4rem;
+      font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+      color: var(--ink-soft); cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-reset:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* ─── FOOTER ─── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--ink-soft);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── FADE-IN ANIMATIONS ─── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.7s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.35s; }
+    .delay-4 { animation-delay: 0.5s; }
+
+    /* ─── STEP INDICATORS ─── */
+    .steps {
+      display: flex; justify-content: center; gap: 2rem;
+      margin: 0 auto 1.5rem;
+      font-size: 0.78rem; color: var(--ink-soft);
+      flex-wrap: wrap;
+    }
+    .step { display: flex; align-items: center; gap: 0.4rem; }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent-lt); color: var(--accent);
+      font-size: 0.7rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      border: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    /* ─── REQUIRED ─── */
+    .req { color: var(--accent); margin-left: 2px; }
+    .error-msg { font-size: 0.72rem; color: var(--danger); display: none; }
+    input.invalid, textarea.invalid, select.invalid { border-color: var(--danger); }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- NAV -->
+  <nav>
+    <a class="logo" href="#">
+      <span class="logo-dot"></span>
+      ApplyEngine
+    </a>
+    <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme">
+      <span id="themeIcon">🌙</span> <span id="themeLabel">Dark</span>
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-badge fade-up delay-1">✦ AI-Powered Applications</div>
+      <h1 class="fade-up delay-2">Submit a job.<br><em>We handle the rest.</em></h1>
+      <p class="fade-up delay-3">Fill in the details below and ApplyEngine will automatically generate a tailored CV and cover letter — ready to send.</p>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="steps fade-up delay-4">
+      <div class="step"><div class="step-num">1</div> You submit a job</div>
+      <div class="step"><div class="step-num">2</div> AI tailors your CV</div>
+      <div class="step"><div class="step-num">3</div> Cover letter generated</div>
+      <div class="step"><div class="step-num">4</div> Ready to apply ✓</div>
+    </div>
+
+    <!-- CARD -->
+    <div class="card fade-up delay-4">
+      <p class="card-title">New Job Submission</p>
+
+      <!-- FORM -->
+      <form class="form-grid" id="applyForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="company">Company <span class="req">*</span></label>
+            <input id="company" name="company" type="text" placeholder="e.g. Google" required />
+            <span class="error-msg" id="companyErr">Please enter the company name.</span>
+          </div>
+          <div class="field">
+            <label for="role">Role <span class="req">*</span></label>
+            <input id="role" name="role" type="text" placeholder="e.g. Product Manager" required />
+            <span class="error-msg" id="roleErr">Please enter the role.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="jobUrl">Job URL</label>
+          <input id="jobUrl" name="jobUrl" type="url" placeholder="https://jobs.company.com/..." />
+        </div>
+
+        <div class="field">
+          <label for="source">Source <span class="req">*</span></label>
+          <select id="source" name="source" required>
+            <option value="" disabled selected>Where did you find this job?</option>
+            <option>LinkedIn</option>
+            <option>Indeed</option>
+            <option>Glassdoor</option>
+            <option>Company Website</option>
+            <option>Referral</option>
+            <option>Other</option>
+          </select>
+          <span class="error-msg" id="sourceErr">Please select a source.</span>
+        </div>
+
+        <div class="field">
+          <label for="jobDesc">Job Description <span class="req">*</span></label>
+          <textarea id="jobDesc" name="jobDesc" placeholder="Paste the full job description here…" required></textarea>
+          <span class="error-msg" id="jobDescErr">Please paste the job description.</span>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span class="btn-text">Generate My Application ↗</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">✦</div>
+        <h2>You're in the queue!</h2>
+        <p>ApplyEngine is now generating your tailored CV and cover letter.<br>Check your connected destination shortly.</p>
+        <button class="btn-reset" id="resetBtn">Submit another job →</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Built with ApplyEngine &nbsp;·&nbsp; Powered by AI &nbsp;·&nbsp; &copy; 2025
+  </footer>
+</div>
+
+<script>
+  // ─── THEME TOGGLE ───
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  const themeLabel = document.getElementById('themeLabel');
+
+  // Load saved preference
+  const saved = localStorage.getItem('ae-theme');
+  if (saved) { html.setAttribute('data-theme', saved); syncThemeUI(saved); }
+
+  themeBtn.addEventListener('click', () => {
+    const current = html.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('ae-theme', next);
+    syncThemeUI(next);
+  });
+
+  function syncThemeUI(theme) {
+    if (theme === 'dark') {
+      themeIcon.textContent = '☀️';
+      themeLabel.textContent = 'Light';
+    } else {
+      themeIcon.textContent = '🌙';
+      themeLabel.textContent = 'Dark';
+    }
+  }
+
+  // ─── FORM SUBMIT ───
+  const form = document.getElementById('applyForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const successScreen = document.getElementById('successScreen');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // YOUR N8N WEBHOOK URL — replace this:
+  const WEBHOOK_URL = 'https://your-n8n-webhook-url-here.com/webhook/applyengine';
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Validate
+    let valid = true;
+    const fields = [
+      { id: 'company', errId: 'companyErr' },
+      { id: 'role',    errId: 'roleErr' },
+      { id: 'source',  errId: 'sourceErr' },
+      { id: 'jobDesc', errId: 'jobDescErr' },
+    ];
+    fields.forEach(({ id, errId }) => {
+      const el = document.getElementById(id);
+      const err = document.getElementById(errId);
+      if (!el.value.trim()) {
+        el.classList.add('invalid');
+        err.style.display = 'block';
+        valid = false;
+      } else {
+        el.classList.remove('invalid');
+        err.style.display = 'none';
+      }
+    });
+    if (!valid) return;
+
+    // Loading state
+    submitBtn.classList.add('loading');
+    submitBtn.disabled = true;
+
+    const payload = {
+      company:     document.getElementById('company').value.trim(),
+      role:        document.getElementById('role').value.trim(),
+      jobUrl:      document.getElementById('jobUrl').value.trim(),
+      source:      document.getElementById('source').value,
+      jobDesc:     document.getElementById('jobDesc').value.trim(),
+      submittedAt: new Date().toISOString(),
+    };
+
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        mode: 'no-cors', // n8n webhooks need this
+      });
+    } catch (err) {
+      console.error('Webhook error (non-blocking):', err);
+    }
+
+    // Simulate a short delay for feel
+    await new Promise(r => setTimeout(r, 1800));
+
+    // Show success
+    form.style.display = 'none';
+    successScreen.style.display = 'flex';
+    submitBtn.classList.remove('loading');
+    submitBtn.disabled = false;
+  });
+
+  // Clear invalid on input
+  form.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', () => {
+      el.classList.remove('invalid');
+      const errId = el.id + 'Err';
+      const errEl = document.getElementById(errId);
+      if (errEl) errEl.style.display = 'none';
+    });
+  });
+
+  // Reset button
+  resetBtn.addEventListener('click', () => {
+    form.reset();
+    form.style.display = 'grid';
+    successScreen.style.display = 'none';
+  });
+</script>
+</body>
+</html>
