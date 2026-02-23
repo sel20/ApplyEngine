@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ApplyEngine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #0055FF;
+      --ink: #0a0a0a;
+      --ink-2: #3a3a3a;
+      --ink-3: #888;
+      --border: #e8e8e8;
+      --surface: #f8f8f7;
+      --white: #ffffff;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--ink);
+      cursor: none;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* CURSOR */
+    #cur-dot {
+      position: fixed; width: 7px; height: 7px;
+      background: var(--ink); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: width .18s, height .18s, background .18s;
+    }
+    #cur-ring {
+      position: fixed; width: 30px; height: 30px;
+      border: 1.5px solid rgba(0,0,0,0.2); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: left .1s ease, top .1s ease, width .22s, height .22s, border-color .22s;
+    }
+    body.ch #cur-dot { width: 10px; height: 10px; background: var(--accent); }
+    body.ch #cur-ring { width: 40px; height: 40px; border-color: rgba(0,85,255,.25); }
+    body.cc #cur-dot { width: 40px; height: 40px; background: var(--accent); opacity: .1; }
+    body.cc #cur-ring { width: 50px; height: 50px; border-color: var(--accent); }
+
+    /* REVEAL */
+    .rv {
+      opacity: 0; transform: translateY(26px);
+      transition: opacity .7s cubic-bezier(.4,0,.2,1), transform .7s cubic-bezier(.4,0,.2,1);
+    }
+    .rv.on { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .1s; }
+    .d2 { transition-delay: .22s; }
+    .d3 { transition-delay: .34s; }
+    .d4 { transition-delay: .46s; }
+
+    /* LAYOUT */
+    .wrap { width: 100%; max-width: 780px; margin: 0 auto; padding: 0 2rem; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.35rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,.9);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid transparent;
+      transition: border-color .3s;
+    }
+    nav.s { border-color: var(--border); }
+    .n-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: .95rem;
+      letter-spacing: -.02em; color: var(--ink);
+      text-decoration: none;
+    }
+    .n-logo b { color: var(--accent); font-weight: 700; }
+    .n-link {
+      font-size: .73rem; font-weight: 500;
+      color: var(--ink-3); text-decoration: none;
+      letter-spacing: .06em; text-transform: uppercase;
+      transition: color .2s;
+    }
+    .n-link:hover { color: var(--ink); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding-top: 6rem;
+      position: relative; overflow: hidden;
+    }
+    .h-l1, .h-l2 {
+      position: absolute; inset: -8%;
+      pointer-events: none; will-change: transform;
+    }
+    .h-l1 { background: radial-gradient(ellipse 520px 400px at 68% 42%, rgba(0,85,255,.055) 0%, transparent 70%); }
+    .h-l2 { background: radial-gradient(ellipse 320px 280px at 25% 65%, rgba(0,0,0,.025) 0%, transparent 65%); }
+    .h-eyebrow {
+      font-size: .68rem; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--ink-3); margin-bottom: 1.6rem;
+      display: flex; align-items: center; gap: .55rem;
+    }
+    .h-eyebrow::before { content:''; display:block; width:20px; height:1px; background:var(--ink-3); }
+    .h-hl {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.9rem, 6.5vw, 5rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -.035em;
+      color: var(--ink);
+      margin-bottom: 1.75rem;
+    }
+    .h-hl em { font-style: normal; color: var(--accent); }
+    .h-sub {
+      font-size: .98rem; font-weight: 300;
+      color: var(--ink-2); line-height: 1.75;
+      max-width: 460px; margin-bottom: 2.5rem;
+    }
+    .h-credit {
+      font-size: .68rem; color: var(--ink-3);
+      letter-spacing: .03em; margin-top: 3rem;
+    }
+    .h-credit strong { color: var(--ink-2); font-weight: 500; }
+
+    /* BUTTONS */
+    .btn-p {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--ink); color: var(--white);
+      padding: .85rem 1.8rem;
+      font-family: 'Inter', sans-serif;
+      font-size: .83rem; font-weight: 500;
+      border: none; border-radius: 3px;
+      cursor: none; text-decoration: none;
+      transition: background .2s, transform .2s, box-shadow .2s;
+      letter-spacing: .01em;
+    }
+    .btn-p:hover { background: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,85,255,.18); }
+    .btn-p svg { transition: transform .2s; }
+    .btn-p:hover svg { transform: translateX(3px); }
+    .btn-g {
+      background: none; border: 1px solid var(--border);
+      border-radius: 3px; padding: .6rem 1.2rem;
+      font-family: 'Inter', sans-serif; font-size: .78rem;
+      color: var(--ink-2); cursor: none;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-g:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* DIVIDER */
+    .div { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+    /* ABOUT */
+    .sec { padding: 6rem 0; }
+    .s-label {
+      font-size: .66rem; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--ink-3); margin-bottom: 2.5rem;
+      display: flex; align-items: center; gap: .55rem;
+    }
+    .s-label::before { content:''; display:block; width:16px; height:1px; background:var(--ink-3); }
+    .a-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: start;
+    }
+    @media(max-width:600px) { .a-grid { grid-template-columns: 1fr; gap: 2rem; } }
+    .a-hl {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.55rem, 3vw, 2.1rem);
+      font-weight: 700; letter-spacing: -.025em;
+      line-height: 1.15; color: var(--ink);
+    }
+    .a-body {
+      font-size: .88rem; font-weight: 300;
+      color: var(--ink-2); line-height: 1.8;
+    }
+    .a-body p + p { margin-top: .9rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1.4rem; }
+    .tag {
+      font-size: .68rem; font-weight: 500;
+      letter-spacing: .04em; color: var(--ink-2);
+      border: 1px solid var(--border); border-radius: 2px;
+      padding: .28rem .65rem;
+    }
+
+    /* APPLY */
+    .apply-sec { padding: 6rem 0; background: var(--surface); }
+    .f-wrap {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 6px; padding: 2.5rem; margin-top: 2.5rem;
+    }
+    @media(max-width:540px) { .f-wrap { padding: 1.5rem; } }
+    .f-grid { display: grid; gap: 1.2rem; }
+    .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    @media(max-width:540px) { .f-row { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: .38rem; }
+    label {
+      font-size: .68rem; font-weight: 500;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    input, textarea, select {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 3px; padding: .72rem 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: .86rem; font-weight: 300;
+      color: var(--ink); outline: none; width: 100%;
+      resize: none; cursor: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input::placeholder, textarea::placeholder { color: #c0c0c0; }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,85,255,.07);
+    }
+    input.err, textarea.err, select.err { border-color: #c0392b; }
+    textarea { min-height: 118px; }
+    select {
+      appearance: none; cursor: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .9rem center;
+      padding-right: 2.2rem;
+    }
+    .ferr { font-size: .68rem; color: #c0392b; }
+    .f-foot {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-top: 1.4rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .f-note { font-size: .68rem; color: var(--ink-3); }
+
+    /* SUBMIT BTN */
+    .btn-s {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--ink); color: var(--white);
+      padding: .82rem 1.7rem;
+      font-family: 'Inter', sans-serif;
+      font-size: .83rem; font-weight: 500;
+      border: none; border-radius: 3px; cursor: none;
+      transition: background .2s, transform .2s, box-shadow .2s, opacity .2s;
+    }
+    .btn-s:hover:not(:disabled) { background: var(--accent); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,85,255,.16); }
+    .btn-s:disabled { opacity: .5; }
+    .spin {
+      width: 13px; height: 13px;
+      border: 1.8px solid rgba(255,255,255,.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: sp .6s linear infinite; display: none;
+    }
+    .ld .spin { display: block; }
+    .ld .bl { display: none; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+
+    /* STATE BOXES */
+    .sbox {
+      display: none; flex-direction: column;
+      align-items: center; text-align: center;
+      padding: 3rem 1rem; gap: 1rem;
+    }
+    .sbox.on { display: flex; }
+    .sico {
+      width: 50px; height: 50px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      animation: pp .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .sico.ok { background: #edf7ed; }
+    .sico.er { background: #fdecea; }
+    @keyframes pp { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:1; } }
+    .stit { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--ink); }
+    .sbod { font-size: .83rem; color: var(--ink-3); line-height: 1.65; }
+
+    /* FOOTER */
+    footer {
+      padding: 2.2rem 2rem;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .f-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: .88rem;
+      letter-spacing: -.02em; color: var(--ink);
+    }
+    .f-logo b { color: var(--accent); }
+    .f-r { font-size: .68rem; color: var(--ink-3); text-align: right; line-height: 1.7; }
+    .f-r strong { color: var(--ink-2); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div id="cur-dot"></div>
+  <div id="cur-ring"></div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const WEBHOOK = "https://pseudomonocyclic-hyun-transiliac.ngrok-free.dev/webhook/job-intake";
+
+    // CURSOR
+    function useCursor() {
+      useEffect(() => {
+        const dot = document.getElementById('cur-dot');
+        const ring = document.getElementById('cur-ring');
+        const move = e => {
+          dot.style.left = ring.style.left = e.clientX + 'px';
+          dot.style.top  = ring.style.top  = e.clientY + 'px';
+        };
+        document.addEventListener('mousemove', move);
+        const attach = () => {
+          document.querySelectorAll('a,button,input,textarea,select').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('ch'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('ch'));
+          });
+          document.querySelectorAll('.btn-p,.btn-s').forEach(el => {
+            el.addEventListener('mouseenter', () => { document.body.classList.remove('ch'); document.body.classList.add('cc'); });
+            el.addEventListener('mouseleave', () => document.body.classList.remove('cc'));
+          });
+        };
+        attach();
+        const obs = new MutationObserver(attach);
+        obs.observe(document.body, { childList:true, subtree:true });
+        return () => { document.removeEventListener('mousemove', move); obs.disconnect(); };
+      }, []);
+    }
+
+    // PARALLAX
+    function useParallax(l1ref, l2ref) {
+      useEffect(() => {
+        const fn = e => {
+          const x = e.clientX/window.innerWidth  - .5;
+          const y = e.clientY/window.innerHeight - .5;
+          if (l1ref.current) l1ref.current.style.transform = `translate(${x*18}px,${y*12}px)`;
+          if (l2ref.current) l2ref.current.style.transform = `translate(${x*-10}px,${y*-7}px)`;
+        };
+        window.addEventListener('mousemove', fn);
+        return () => window.removeEventListener('mousemove', fn);
+      }, []);
+    }
+
+    // SCROLL REVEAL
+    function useReveal() {
+      useEffect(() => {
+        const els = document.querySelectorAll('.rv');
+        const io = new IntersectionObserver(entries => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+        }, { threshold: .1 });
+        els.forEach(el => io.observe(el));
+        return () => io.disconnect();
+      });
+    }
+
+    // NAV
+    function Nav() {
+      const [scrolled, setScrolled] = useState(false);
+      useEffect(() => {
+        const fn = () => setScrolled(window.scrollY > 30);
+        window.addEventListener('scroll', fn);
+        return () => window.removeEventListener('scroll', fn);
+      }, []);
+      return (
+        <nav className={scrolled ? 's' : ''}>
+          <a href="#" className="n-logo">Apply<b>Engine</b></a>
+          <a href="#apply" className="n-link">Apply Now</a>
+        </nav>
+      );
+    }
+
+    // HERO
+    function Hero() {
+      const l1 = useRef(null), l2 = useRef(null);
+      useParallax(l1, l2);
+      return (
+        <section className="hero">
+          <div className="h-l1" ref={l1} />
+          <div className="h-l2" ref={l2} />
+          <div className="wrap" style={{position:'relative',zIndex:1}}>
+            <p className="h-eyebrow rv">Job Application Automation</p>
+            <h1 className="h-hl rv d1">Submit once.<br /><em>Apply everywhere.</em></h1>
+            <p className="h-sub rv d2">
+              ApplyEngine takes a job posting and generates a tailored CV and cover letter — automatically. Less friction. More interviews.
+            </p>
+            <div className="rv d3">
+              <a href="#apply" className="btn-p">
+                Submit a Job
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+            <p className="h-credit rv d4">Built &amp; designed by <strong>Selwyn Gonsalves</strong></p>
+          </div>
+        </section>
+      );
+    }
+
+    // ABOUT
+    function About() {
+      return (
+        <section className="sec">
+          <hr className="div" />
+          <div className="wrap" style={{paddingTop:'6rem'}}>
+            <p className="s-label rv">How It Works</p>
+            <div className="a-grid">
+              <div className="rv d1">
+                <h2 className="a-hl">One form.<br />A complete application.</h2>
+              </div>
+              <div className="rv d2">
+                <div className="a-body">
+                  <p>Paste a job description. ApplyEngine processes it through an automation pipeline — scoring, tailoring, and generating documents tuned specifically to the role.</p>
+                  <p>No manual editing. No generic templates. A CV and cover letter that actually match what the employer asked for.</p>
+                </div>
+                <div className="tags">
+                  {['CV Generation','Cover Letter','n8n Automation','Google Drive','AI Scoring'].map(t => (
+                    <span key={t} className="tag">{t}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // FORM
+    function Apply() {
+      const [form, setForm] = useState({ company:'', role:'', jobUrl:'', source:'', jobDesc:'' });
+      const [errors, setErrors] = useState({});
+      const [status, setStatus] = useState('idle');
+
+      const set = (k, v) => { setForm(f => ({...f,[k]:v})); setErrors(e => ({...e,[k]:false})); };
+
+      const validate = () => {
+        const e = {};
+        if (!form.company.trim()) e.company = true;
+        if (!form.role.trim())    e.role = true;
+        if (!form.source)         e.source = true;
+        if (!form.jobDesc.trim()) e.jobDesc = true;
+        setErrors(e);
+        return !Object.keys(e).length;
+      };
+
+      const submit = async ev => {
+        ev.preventDefault();
+        if (!validate()) return;
+        setStatus('loading');
+        try {
+          await fetch(WEBHOOK, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...form, submittedAt: new Date().toISOString() }),
+            mode: 'no-cors',
+          });
+          setStatus('success');
+        } catch { setStatus('error'); }
+      };
+
+      const reset = () => { setForm({ company:'',role:'',jobUrl:'',source:'',jobDesc:'' }); setErrors({}); setStatus('idle'); };
+      const f = k => ({ value: form[k], onChange: e => set(k, e.target.value), className: errors[k] ? 'err' : '' });
+
+      return (
+        <section className="apply-sec" id="apply">
+          <div className="wrap">
+            <p className="s-label rv">Apply</p>
+            <h2 className="a-hl rv d1" style={{marginBottom:'.5rem'}}>Ready to apply?</h2>
+            <p className="a-body rv d2" style={{maxWidth:'460px'}}>
+              Fill in the details below. Your tailored documents will be generated and stored automatically.
+            </p>
+
+            <div className="f-wrap rv d3">
+              {(status === 'idle' || status === 'loading') && (
+                <form onSubmit={submit} noValidate>
+                  <div className="f-grid">
+                    <div className="f-row">
+                      <div className="field">
+                        <label htmlFor="co">Company *</label>
+                        <input id="co" type="text" placeholder="e.g. Stripe" {...f('company')} />
+                        {errors.company && <span className="ferr">Required</span>}
+                      </div>
+                      <div className="field">
+                        <label htmlFor="ro">Role *</label>
+                        <input id="ro" type="text" placeholder="e.g. Product Designer" {...f('role')} />
+                        {errors.role && <span className="ferr">Required</span>}
+                      </div>
+                    </div>
+                    <div className="f-row">
+                      <div className="field">
+                        <label htmlFor="src">Source *</label>
+                        <select id="src" value={form.source} onChange={e=>set('source',e.target.value)} className={errors.source?'err':''}>
+                          <option value="" disabled>Where did you find it?</option>
+                          {['LinkedIn','Indeed','Glassdoor','Company Website','Referral','Other'].map(o=><option key={o}>{o}</option>)}
+                        </select>
+                        {errors.source && <span className="ferr">Required</span>}
+                      </div>
+                      <div className="field">
+                        <label htmlFor="url">Job URL</label>
+                        <input id="url" type="url" placeholder="https://..." {...f('jobUrl')} />
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label htmlFor="jd">Job Description *</label>
+                      <textarea id="jd" placeholder="Paste the full job description here…" {...f('jobDesc')} />
+                      {errors.jobDesc && <span className="ferr">Required</span>}
+                    </div>
+                  </div>
+                  <div className="f-foot">
+                    <span className="f-note">* Required fields</span>
+                    <button type="submit" className={`btn-s${status==='loading'?' ld':''}`} disabled={status==='loading'}>
+                      <span className="bl">Generate Application</span>
+                      <span className="spin" />
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {status === 'success' && (
+                <div className="sbox on">
+                  <div className="sico ok">✓</div>
+                  <p className="stit">Submitted successfully</p>
+                  <p className="sbod">ApplyEngine is generating your tailored CV and cover letter.<br />Check your connected destination shortly.</p>
+                  <button className="btn-g" onClick={reset}>Submit another →</button>
+                </div>
+              )}
+
+              {status === 'error' && (
+                <div className="sbox on">
+                  <div className="sico er">✕</div>
+                  <p className="stit">Something went wrong</p>
+                  <p className="sbod">The submission could not be sent. Please check your connection and try again.</p>
+                  <button className="btn-g" onClick={reset}>Try again →</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // FOOTER
+    function Footer() {
+      return (
+        <footer>
+          <div className="f-logo">Apply<b>Engine</b></div>
+          <div className="f-r">
+            Built &amp; designed by <strong>Selwyn Gonsalves</strong><br />
+            <span style={{opacity:.55}}>&copy; {new Date().getFullYear()}</span>
+          </div>
+        </footer>
+      );
+    }
+
+    // APP
+    function App() {
+      useCursor();
+      useReveal();
+      return <>
+        <Nav /><Hero /><About /><Apply /><Footer />
+      </>;
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
