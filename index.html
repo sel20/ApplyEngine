@@ -947,6 +947,14 @@
     /* ════════════════════════════════
        CONFIG — edit webhook URL here
     ════════════════════════════════ */
+    /* ════════════════════════════════════════
+       CONFIG
+       - Local:  opens index.html directly or via localhost → hits n8n
+       - Remote: GitHub Pages → form shows "run locally" notice
+    ════════════════════════════════════════ */
+    const IS_LOCAL = window.location.hostname === 'localhost'
+                  || window.location.hostname === '127.0.0.1'
+                  || window.location.protocol === 'file:';
     const WEBHOOK_URL = "http://localhost:5678/webhook/job-intake";
 
     const { useState, useEffect, useRef } = React;
@@ -1123,6 +1131,28 @@
       };
       const reset=()=>{ setForm(init); setErrs({}); setStatus('idle'); };
       const f=k=>({value:form[k],onChange:e=>set(k,e.target.value),className:errs[k]?'err':''});
+
+      /* ── Remote notice — shown on GitHub Pages ── */
+      if(!IS_LOCAL) return (
+        <section className="apply-sec" id="apply">
+          <div className="wrap z1">
+            <p className="s-label rv" style={{paddingTop:"5rem"}}>Apply</p>
+            <h2 className="a-hl rv d1" style={{marginBottom:'.5rem'}}>Ready to apply?</h2>
+            <p className="a-body rv d2" style={{maxWidth:'500px'}}>
+              This tool runs locally — open the file directly on your machine to submit jobs to the automation pipeline.
+            </p>
+            <div className="f-wrap rv d3" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2.5rem',textAlign:'center'}}>
+              <div style={{width:'40px',height:'40px',borderRadius:'50%',border:'1px solid rgba(124,77,255,.25)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1rem',color:'var(--purple)'}}>◯</div>
+              <p style={{fontFamily:"'Syne',sans-serif",fontWeight:'600',fontSize:'.95rem',color:'var(--ink)'}}>Local only</p>
+              <p style={{fontSize:'.8rem',fontWeight:'300',color:'var(--ink-2)',lineHeight:'1.75',maxWidth:'360px'}}>
+                Download <code style={{color:'var(--purple)',fontSize:'.75rem'}}>index.html</code>, open it in your browser, make sure n8n is running at <code style={{color:'var(--purple)',fontSize:'.75rem'}}>localhost:5678</code>, and the form will be live.
+              </p>
+            </div>
+          </div>
+        </section>
+      );
+
+      /* ── Local form — full functionality ── */
       return (
         <section className="apply-sec" id="apply">
           <div className="wrap z1">
@@ -1159,7 +1189,7 @@
                 </form>
               )}
               {status==='success'&&(<div className="sbox on"><div className="sico ok">✓</div><p className="stit">Submitted successfully</p><p className="sbod">ApplyEngine is generating your tailored CV and cover letter.<br/>Check your connected destination shortly.</p><button className="btn-g" onClick={reset}>Submit another →</button></div>)}
-              {status==='error'&&(<div className="sbox on"><div className="sico er">✕</div><p className="stit">Something went wrong</p><p className="sbod">The submission could not be sent.<br/>Check your connection and try again.</p><button className="btn-g" onClick={reset}>Try again →</button></div>)}
+              {status==='error'&&(<div className="sbox on"><div className="sico er">✕</div><p className="stit">Something went wrong</p><p className="sbod">The submission could not be sent.<br/>Check your n8n is running at localhost:5678 and try again.</p><button className="btn-g" onClick={reset}>Try again →</button></div>)}
             </div>
           </div>
         </section>
